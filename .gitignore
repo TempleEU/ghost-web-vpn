@@ -1,0 +1,4 @@
+server/.env
+server/wireguard/
+*.key
+*.pem
