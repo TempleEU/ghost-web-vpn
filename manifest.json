@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Ghost Web VPN",
-  "version": "0.2.0",
-  "description": "Privacy-focused browser proxy client for a Ghost-controlled endpoint.",
+  "version": "0.3.0",
+  "description": "Privacy-focused browser proxy client for a self-hosted Ghost VPN endpoint.",
   "action": { "default_popup": "popup.html" },
   "background": { "service_worker": "background.js", "type": "module" },
   "permissions": ["proxy", "storage", "webRequest", "webRequestAuthProvider"],
