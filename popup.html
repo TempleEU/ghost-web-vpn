@@ -3,25 +3,54 @@
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ghost Web VPN</title><link rel="stylesheet" href="popup.css"></head>
 <body>
 <main class="card">
-  <div class="brand"><img src="icon.svg" alt=""><div><h1>Ghost Web VPN</h1><p>Private proxy connection</p></div></div>
+  <div class="brand"><img src="icon.svg" alt=""><div><h1>Ghost Web VPN</h1><p data-i18n="tagline">Private proxy connection</p></div></div>
   <button id="toggle" class="power" aria-pressed="false"><span id="statusDot"></span><span id="status">Disconnected</span></button>
+  <p id="protection" class="protection"></p>
+  <p id="proof" class="proof"></p>
+
   <section class="panel">
-    <label>Protocol<select id="scheme"><option>http</option><option>https</option><option>socks4</option><option selected>socks5</option></select></label>
-    <label>Proxy host<input id="host" placeholder="100.x.y.z (Tailscale) or vpn.example.com" autocomplete="off"></label>
-    <label>Port<input id="port" type="number" min="1" max="65535" placeholder="1080"></label>
-    <label>Username<input id="username" placeholder="Optional, HTTP(S) only" autocomplete="username"></label>
-    <label>Password<input id="password" type="password" placeholder="Optional, HTTP(S) only" autocomplete="current-password"></label>
-    <p id="authHint" class="hint" hidden>Chrome cannot authenticate SOCKS proxies. Leave credentials blank and protect the endpoint with Tailscale instead.</p>
+    <label data-i18n="presetLabel">Endpoint preset<select id="proxyPreset"></select></label>
+    <label data-i18n="protocol">Protocol<select id="scheme"><option>http</option><option>https</option><option>socks4</option><option selected>socks5</option></select></label>
+    <label data-i18n="host">Proxy host<input id="host" placeholder="100.x.y.z or vpn.example.com" autocomplete="off"></label>
+    <label data-i18n="port">Port<input id="port" type="number" min="1" max="65535" placeholder="1080"></label>
+    <label data-i18n="username">Username<input id="username" placeholder="Optional, HTTP(S) only" autocomplete="username"></label>
+    <label data-i18n="password">Password<input id="password" type="password" placeholder="Optional, HTTP(S) only" autocomplete="current-password"></label>
+    <button id="saveProfile" type="button" class="secondary" data-i18n="saveProfile">Save as profile</button>
+    <p id="authHint" class="hint" hidden>Chrome cannot authenticate SOCKS proxies. Protect the endpoint with Tailscale.</p>
   </section>
+
   <section class="panel">
-    <label class="switch-row"><input type="checkbox" id="locOn"><span><strong>Location protection</strong><small>Match geolocation, timezone &amp; Intl to your endpoint region</small></span></label>
+    <h2 data-i18n="profiles">Endpoint profiles</h2>
+    <select id="profiles"></select>
+    <div class="row"><button id="switchProfile" type="button" class="mini-btn" data-i18n="switch">Switch</button><button id="deleteProfile" type="button" class="mini-btn" data-i18n="delete">Delete</button></div>
+  </section>
+
+  <section class="panel">
+    <label class="switch-row"><input type="checkbox" id="killSwitch"><span><strong data-i18n="killSwitch">Kill switch</strong><small data-i18n="killHint">Block traffic if the endpoint stops responding</small></span></label>
+  </section>
+
+  <section class="panel">
+    <label class="switch-row"><input type="checkbox" id="locOn"><span><strong data-i18n="location">Location protection</strong><small data-i18n="locationHint">Match geolocation, timezone &amp; Intl to your exit</small></span></label>
     <div id="locBody" class="loc-body" hidden>
-      <label>Endpoint region<select id="locRegion"></select></label>
-      <div class="row"><span>Or detect from your connection</span><button id="locDetect" type="button" class="mini-btn">Detect</button></div>
-      <p class="hint">Refresh a tab to apply the change to that page. Detection sends your IP to ipapi.co. WebRTC hardening is best-effort in Chrome.</p>
+      <label data-i18n="region">Endpoint region<select id="locRegion"></select></label>
+      <button id="locDetect" type="button" class="mini-btn" data-i18n="detect">Sync from endpoint</button>
+      <p class="hint" data-i18n="locationNote">The endpoint is queried through the proxy. Refresh open tabs if a page does not update.</p>
     </div>
     <p id="locMsg" class="message"></p>
   </section>
+
+  <section class="panel">
+    <h2 data-i18n="siteRules">Per-site rules</h2>
+    <p id="siteHost" class="hint">Active tab: —</p>
+    <div class="row"><button id="routeSite" type="button" class="mini-btn" data-i18n="routeSite">Route this site</button><button id="bypassSite" type="button" class="mini-btn" data-i18n="bypassSite">Bypass this site</button></div>
+    <button id="blockSite" type="button" class="mini-btn danger" data-i18n="blockSite">Block this site</button>
+    <p class="hint" data-i18n="siteRuleHint">Rules match the host and its subdomains. Route is the normal endpoint path; bypass uses your direct connection.</p>
+  </section>
+
+  <section class="panel">
+    <label data-i18n="language">Language<select id="language"><option value="en">English</option><option value="sv">Svenska</option><option value="de">Deutsch</option><option value="pl">Polski</option><option value="es">Español</option><option value="fr">Français</option></select></label>
+  </section>
+
   <p id="message" class="message"></p>
   <small>Credentials are kept in extension storage and are never committed to the repository.</small>
   <small class="contact">Questions or feedback? <a href="mailto:ghostweb@ghostbin.cfd">ghostweb@ghostbin.cfd</a></small>
