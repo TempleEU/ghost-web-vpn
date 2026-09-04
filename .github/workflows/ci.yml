@@ -12,6 +12,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate manifest JSON
         run: python -m json.tool manifest.json >/dev/null
+      - name: Syntax-check extension scripts
+        run: |
+          node --check background.js
+          node --check popup.js
       - name: Validate required files
         run: |
           test -f background.js
@@ -19,8 +23,13 @@ jobs:
           test -f popup.js
           test -f popup.css
           test -f icon.svg
+          test -f icons/icon16.png
+          test -f icons/icon32.png
+          test -f icons/icon48.png
+          test -f icons/icon128.png
           test -f server/docker-compose.yml
           test -f server/.env.example
+          test -f server/free-self-hosted/setup-free-endpoint.sh
       - name: Validate extension manifest
         run: |
           python - <<'PY'
@@ -30,6 +39,8 @@ jobs:
           assert m['action']['default_popup']=='popup.html'
           assert m['background']['service_worker']=='background.js'
           assert 'proxy' in m['permissions']
+          assert set(m['icons']) >= {'16','32','48','128'}
+          assert all(m['icons'][k].endswith('.png') for k in m['icons'])
           print('Extension manifest OK')
           PY
       - name: Create CI-only server environment
@@ -47,6 +58,13 @@ jobs:
           EOF
       - name: Validate server compose
         run: docker compose -f server/docker-compose.yml config --quiet
+      - name: Shellcheck setup script
+        run: |
+          if command -v shellcheck >/dev/null 2>&1; then
+            shellcheck server/free-self-hosted/setup-free-endpoint.sh
+          else
+            echo 'shellcheck not available; skipping'
+          fi
       - name: Secret hygiene
         run: |
           set -euo pipefail
@@ -58,7 +76,7 @@ jobs:
       - name: Package extension
         run: |
           mkdir -p dist
-          zip -q -r dist/ghost-web-vpn.zip manifest.json background.js popup.html popup.js popup.css icon.svg README.md
+          zip -q -r dist/ghost-web-vpn.zip manifest.json background.js popup.html popup.js popup.css icon.svg icons README.md
       - uses: actions/upload-artifact@v4
         with:
           name: ghost-web-vpn-extension

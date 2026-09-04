@@ -7,12 +7,14 @@
   <button id="toggle" class="power" aria-pressed="false"><span id="statusDot"></span><span id="status">Disconnected</span></button>
   <section class="panel">
     <label>Protocol<select id="scheme"><option>http</option><option>https</option><option>socks4</option><option selected>socks5</option></select></label>
-    <label>Proxy host<input id="host" placeholder="vpn.example.com" autocomplete="off"></label>
+    <label>Proxy host<input id="host" placeholder="100.x.y.z (Tailscale) or vpn.example.com" autocomplete="off"></label>
     <label>Port<input id="port" type="number" min="1" max="65535" placeholder="1080"></label>
-    <label>Username<input id="username" placeholder="Ghost user" autocomplete="username"></label>
-    <label>Password<input id="password" type="password" placeholder="Proxy password" autocomplete="current-password"></label>
+    <label>Username<input id="username" placeholder="Optional, HTTP(S) only" autocomplete="username"></label>
+    <label>Password<input id="password" type="password" placeholder="Optional, HTTP(S) only" autocomplete="current-password"></label>
+    <p id="authHint" class="hint" hidden>Chrome cannot authenticate SOCKS proxies. Leave credentials blank and protect the endpoint with Tailscale instead.</p>
   </section>
   <p id="message" class="message"></p>
   <small>Credentials are kept in extension storage and are never committed to the repository.</small>
+  <small class="contact">Questions or feedback? <a href="mailto:ghostweb@ghostbin.cfd">ghostweb@ghostbin.cfd</a></small>
 </main><script src="popup.js"></script>
 </body></html>
