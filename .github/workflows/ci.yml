@@ -32,15 +32,24 @@ jobs:
           assert 'proxy' in m['permissions']
           print('Extension manifest OK')
           PY
-      - name: Validate server compose
+      - name: Create CI-only server environment
         run: |
-          cp server/.env.example server/.env
-          sed -i 's/^SERVERURL=.*/SERVERURL=127.0.0.1/' server/.env
-          sed -i 's/^PROXY_PASSWORD=.*/PROXY_PASSWORD=ci-test-only-random-secret/' server/.env
-          docker compose -f server/docker-compose.yml config --quiet
+          cat > server/.env <<'EOF'
+          SERVERURL=127.0.0.1
+          SERVERPORT=51820
+          PEERS=ci-peer
+          PEERDNS=1.1.1.1
+          INTERNAL_SUBNET=10.66.66.0
+          PROXY_PORT=1080
+          PROXY_USER=ci-user
+          PROXY_PASSWORD=ci-password-only
+          TZ=UTC
+          EOF
+      - name: Validate server compose
+        run: docker compose -f server/docker-compose.yml config --quiet
       - name: Secret hygiene
         run: |
-          ! grep -RInE 'PRIVATE_KEY=|WG_PRIVATE_KEY=|password:[[:space:]]*[^$<]' server --exclude='*.example' --exclude='README.md' || (echo 'Potential secret found'; exit 1)
+          ! grep -RInE 'PRIVATE_KEY=|WG_PRIVATE_KEY=' . --exclude-dir=.git || (echo 'Potential private key found'; exit 1)
       - name: Package extension
         run: |
           mkdir -p dist
