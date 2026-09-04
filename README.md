@@ -8,7 +8,7 @@
 
 A privacy-focused Chromium proxy client built from scratch as a Manifest V3 extension. Route browser traffic through an endpoint you control, verify the route live, and reduce browser-level location leakage.
 
-[![CI](https://github.com/TempleEU/ghost-web-vpn/actions/workflows/ci.yml/badge.svg)](https://github.com/TempleEU/ghost-web-vpn/actions/workflows/ci.yml)
+[![CI](https://github.com/TempleEU/ghost-web-vpn/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/TempleEU/ghost-web-vpn/actions/workflows/ci.yml?query=branch%3Amain)
 [![Manifest V3](https://img.shields.io/badge/Chrome-Manifest%20V3-67e8a2?logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/develop/migrate/what-is-manifest-v3)
 [![Self-hosted](https://img.shields.io/badge/Endpoint-Self--Hosted-67e8a2)](server/free-self-hosted/README.md)
 [![FOSSVPS](https://img.shields.io/badge/Cloud-FOSSVPS-67e8a2)](https://fossvps.org/)
@@ -146,7 +146,7 @@ Every push to `main` and every pull request runs the validation workflow. The CI
 
 **Build gate:** `validate` → package → artifact upload.
 
-[![CI](https://github.com/TempleEU/ghost-web-vpn/actions/workflows/ci.yml/badge.svg)](https://github.com/TempleEU/ghost-web-vpn/actions/workflows/ci.yml)
+[![CI](https://github.com/TempleEU/ghost-web-vpn/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/TempleEU/ghost-web-vpn/actions/workflows/ci.yml?query=branch%3Amain)
 
 ## 📁 Project structure
 
