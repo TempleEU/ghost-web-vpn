@@ -6,11 +6,13 @@
   <div class="brand"><img src="icon.svg" alt=""><div><h1>Ghost Web VPN</h1><p>Private proxy connection</p></div></div>
   <button id="toggle" class="power" aria-pressed="false"><span id="statusDot"></span><span id="status">Disconnected</span></button>
   <section class="panel">
-    <label>Protocol<select id="scheme"><option>http</option><option>https</option><option>socks4</option><option>socks5</option></select></label>
-    <label>Proxy host<input id="host" placeholder="127.0.0.1" autocomplete="off"></label>
-    <label>Port<input id="port" type="number" min="1" max="65535" placeholder="8080"></label>
+    <label>Protocol<select id="scheme"><option>http</option><option>https</option><option>socks4</option><option selected>socks5</option></select></label>
+    <label>Proxy host<input id="host" placeholder="vpn.example.com" autocomplete="off"></label>
+    <label>Port<input id="port" type="number" min="1" max="65535" placeholder="1080"></label>
+    <label>Username<input id="username" placeholder="Ghost user" autocomplete="username"></label>
+    <label>Password<input id="password" type="password" placeholder="Proxy password" autocomplete="current-password"></label>
   </section>
   <p id="message" class="message"></p>
-  <small>Ghost Web VPN uses a proxy endpoint you control. It does not provide servers by itself.</small>
+  <small>Credentials are kept in extension storage and are never committed to the repository.</small>
 </main><script src="popup.js"></script>
 </body></html>
