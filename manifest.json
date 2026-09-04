@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Ghost Web VPN",
-  "version": "0.6.0",
-  "description": "Privacy-focused browser proxy client for a self-hosted Ghost VPN endpoint. Contact: ghostweb@ghostbin.cfd",
+  "version": "0.7.0",
+  "description": "Privacy-focused browser proxy client with fail-closed protection, per-site routing, endpoint profiles and location coherence. Contact: ghostweb@ghostbin.cfd",
   "action": { "default_popup": "popup.html" },
   "background": { "service_worker": "background.js", "type": "module" },
   "content_scripts": [
@@ -14,8 +14,8 @@
       "match_about_blank": true
     }
   ],
-  "permissions": ["alarms", "privacy", "proxy", "storage", "webRequest", "webRequestAuthProvider"],
-  "host_permissions": ["<all_urls>"],
+  "permissions": ["alarms", "privacy", "proxy", "storage", "tabs", "webRequest", "webRequestAuthProvider"],
+  "host_permissions": ["<all_urls>", "https://ipapi.co/*", "https://www.gstatic.com/*", "https://example.com/*"],
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
