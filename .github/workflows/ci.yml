@@ -34,6 +34,9 @@ jobs:
           PY
       - name: Validate server compose
         run: |
+          cp server/.env.example server/.env
+          sed -i 's/^SERVERURL=.*/SERVERURL=127.0.0.1/' server/.env
+          sed -i 's/^PROXY_PASSWORD=.*/PROXY_PASSWORD=ci-test-only-random-secret/' server/.env
           docker compose -f server/docker-compose.yml config --quiet
       - name: Secret hygiene
         run: |
