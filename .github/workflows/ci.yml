@@ -1,0 +1,32 @@
+name: Ghost Web VPN CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate-extension:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate manifest JSON
+        run: python -m json.tool manifest.json >/dev/null
+      - name: Validate required files
+        run: |
+          test -f background.js
+          test -f popup.html
+          test -f popup.js
+          test -f popup.css
+          test -f icon.svg
+      - name: Validate manifest essentials
+        run: |
+          python - <<'PY'
+          import json
+          m=json.load(open('manifest.json'))
+          assert m['manifest_version']==3
+          assert m['action']['default_popup']=='popup.html'
+          assert m['background']['service_worker']=='background.js'
+          assert 'proxy' in m['permissions']
+          print('Ghost Web VPN manifest OK')
+          PY
