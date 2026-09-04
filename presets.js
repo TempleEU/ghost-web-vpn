@@ -1,9 +1,11 @@
 // Endpoint presets. Public proxies are convenience presets only; verify and
 // trust an endpoint before sending sensitive traffic through it.
+// Public entries are health-checked by Ghost before they are considered protected.
+const GEONODE_PROXY_LIST_URL = "https://proxylist.geonode.com/api/proxy-list?page=1&limit=500&sort_by=responseTime&sort_type=asc";
 const PROXY_PRESETS = [
-  { id: "nuremberg", city: "Nürnberg", country: "Germany", scheme: "socks5", host: "157.90.113.23", port: 9052 },
-  { id: "warsaw", city: "Warsaw", country: "Poland", scheme: "socks5", host: "57.128.249.250", port: 9052 },
-  { id: "oregon", city: "Oregon", country: "USA", scheme: "socks5", host: "5.78.181.0", port: 9052 },
+  { id: "nuremberg", city: "Nürnberg", country: "Germany", scheme: "socks5", host: "157.90.113.23", port: 9052, source: "public", requiresVerification: true },
+  { id: "warsaw", city: "Warsaw", country: "Poland", scheme: "socks5", host: "57.128.249.250", port: 9052, source: "public", requiresVerification: true },
+  { id: "oregon", city: "Oregon", country: "USA", scheme: "socks5", host: "5.78.181.0", port: 9052, source: "public", requiresVerification: true },
 ];
 
 const LOCATION_PRESETS = [
