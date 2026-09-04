@@ -17,7 +17,7 @@ A privacy-focused Chromium proxy client built from scratch as a Manifest V3 exte
 
 ---
 
-## 👻 Ghost
+## 👻 Ghost Web: Virtual Private Network
 
 Ghost Web VPN follows one principle: **the browser should use an endpoint you control, not a bundled third-party proxy fleet.**
 
