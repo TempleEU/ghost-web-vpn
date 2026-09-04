@@ -1,35 +1,69 @@
 # Ghost Web VPN endpoint
 
-This directory is the self-hosted server side of Ghost Web VPN.
+Self-hosted server side for Ghost Web VPN.
 
 ## Architecture
 
-`WireGuard` provides the encrypted VPN tunnel. The SOCKS5 service shares the VPN network namespace. The browser extension can use the SOCKS5 endpoint after it is deliberately exposed on a trusted interface.
+- **WireGuard** provides the encrypted VPN tunnel and generates the `ghost-web` peer configuration.
+- **SOCKS5** runs in the WireGuard container network namespace.
+- The SOCKS5 listener is exposed on TCP `1080` and requires username/password authentication.
+- The browser extension can connect directly to the authenticated SOCKS5 endpoint.
 
-WireGuard uses public-key cryptography and supports a simple `wg-quick` style configuration. See the official WireGuard documentation for protocol and deployment details.
+LinuxServer's WireGuard image supports server mode, peer generation and configurable `SERVERURL`, `SERVERPORT`, `PEERS`, `PEERDNS`, and `INTERNAL_SUBNET`. citeturn0search0
+
+The SOCKS5 component supports authentication through `PROXY_USER` and `PROXY_PASSWORD`. citeturn1search0
 
 ## Deploy on a VPS you control
 
-1. Install Docker Engine and Docker Compose on a Linux VPS you control.
-2. Copy `.env.example` to `.env` and set `SERVERURL` to the VPS public IP or DNS name.
-3. Open UDP `51820` in the VPS/cloud firewall.
-4. Start the stack:
+1. Install Docker Engine and Docker Compose on a Linux VPS you own/control.
+2. Copy `.env.example` to `.env`.
+3. Set `SERVERURL` to the VPS public IP or DNS name.
+4. Replace `PROXY_PASSWORD` with a long random secret. Never commit `.env`.
+5. Open UDP `51820` and TCP `1080` in the VPS/cloud firewall.
+6. Start the endpoint:
 
 ```sh
 docker compose up -d
 ```
 
-5. The WireGuard peer configuration is generated under `server/wireguard` by the container. Keep those files private.
-6. Do not publish generated private keys or peer configurations to GitHub.
+7. Check the service:
 
-## Proxy exposure
+```sh
+docker compose ps
+docker compose logs --tail=100 ghost-vpn ghost-proxy
+```
 
-The compose file binds TCP 1080 to `127.0.0.1` on the server host. This intentionally prevents an unauthenticated public SOCKS5 service. To use the proxy from the browser, route access through the WireGuard tunnel or put an authenticated proxy in front of it. Never expose an open SOCKS5 port to the Internet.
+8. The generated WireGuard peer configuration is stored below `server/wireguard`. Keep it private.
 
-## DNS and routing
+## Client configuration
 
-For a full-tunnel client, the WireGuard peer should use `AllowedIPs = 0.0.0.0/0` and the server must have IPv4 forwarding/NAT configured. The LinuxServer WireGuard image handles the standard server-side setup; verify the generated configuration before production use.
+Use:
 
-## Current limitation
+- Protocol: `socks5`
+- Host: your VPS public IP/DNS name
+- Port: `1080`
+- Username: the `PROXY_USER` value
+- Password: the `PROXY_PASSWORD` value
 
-GitHub can build and configure the server software, but it cannot provision a public VPS on your behalf. A real endpoint becomes "controlled by Ghost" only after you deploy this server stack to a VPS/cloud host under your account and supply its public address to the extension.
+The browser client stores the credentials locally and supplies them when the proxy requests authentication.
+
+## Security
+
+This endpoint is intentionally authenticated; do **not** deploy an anonymous public SOCKS5 service. The upstream SOCKS5 implementation explicitly supports `REQUIRE_AUTH`, credentials and destination/IP allow-lists. citeturn1search0
+
+For production, additionally restrict TCP `1080` with your VPS firewall where practical, monitor connections, rotate credentials, and keep the container images updated.
+
+## Full-tunnel WireGuard
+
+For a full VPN tunnel, the generated peer should use `AllowedIPs = 0.0.0.0/0`, with server forwarding/NAT configured. The LinuxServer WireGuard image documents the server-mode routing model and its `ALLOWEDIPS` setting. citeturn0search0
+
+## Secrets rule
+
+GitHub contains only templates. Never commit:
+
+- `.env`
+- WireGuard private keys
+- generated peer `.conf` files
+- proxy passwords
+
+A real endpoint becomes operational only after this stack is deployed to a VPS/cloud server under your control.
