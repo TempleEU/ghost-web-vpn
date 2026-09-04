@@ -8,8 +8,8 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=UTC
-      - SERVERURL=${SERVERURL}
+      - TZ=${TZ:-UTC}
+      - SERVERURL=${SERVERURL:?Set SERVERURL in .env}
       - SERVERPORT=${SERVERPORT:-51820}
       - PEERS=${PEERS:-ghost-web}
       - PEERDNS=${PEERDNS:-1.1.1.1}
@@ -19,7 +19,7 @@ services:
       - /lib/modules:/lib/modules:ro
     ports:
       - "${SERVERPORT:-51820}:${SERVERPORT:-51820}/udp"
-      - "${PROXY_PORT:-1080}:1080/tcp"
+      - "127.0.0.1:${PROXY_PORT:-1080}:1080/tcp"
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
     restart: unless-stopped
@@ -30,9 +30,8 @@ services:
     network_mode: "service:ghost-vpn"
     environment:
       - PROXY_PORT=1080
-      - PROXY_USER=${PROXY_USER}
-      - PROXY_PASSWORD=${PROXY_PASSWORD}
-      - REQUIRE_AUTH=true
+      - PROXY_USER=${PROXY_USER:?Set PROXY_USER in .env}
+      - PROXY_PASSWORD=${PROXY_PASSWORD:?Set PROXY_PASSWORD in .env}
     depends_on:
       - ghost-vpn
     restart: unless-stopped
