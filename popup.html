@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ghost Web VPN</title><link rel="stylesheet" href="popup.css"></head>
+<body>
+<main class="card">
+  <div class="brand"><img src="icon.svg" alt=""><div><h1>Ghost Web VPN</h1><p>Private proxy connection</p></div></div>
+  <button id="toggle" class="power" aria-pressed="false"><span id="statusDot"></span><span id="status">Disconnected</span></button>
+  <section class="panel">
+    <label>Protocol<select id="scheme"><option>http</option><option>https</option><option>socks4</option><option>socks5</option></select></label>
+    <label>Proxy host<input id="host" placeholder="127.0.0.1" autocomplete="off"></label>
+    <label>Port<input id="port" type="number" min="1" max="65535" placeholder="8080"></label>
+  </section>
+  <p id="message" class="message"></p>
+  <small>Ghost Web VPN uses a proxy endpoint you control. It does not provide servers by itself.</small>
+</main><script src="popup.js"></script>
+</body></html>
