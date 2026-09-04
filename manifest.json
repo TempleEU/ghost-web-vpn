@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
   "name": "Ghost Web VPN",
-  "version": "0.1.0",
-  "description": "Privacy-focused browser proxy client inspired by the one-click experience of BiuBiu VPN.",
+  "version": "0.2.0",
+  "description": "Privacy-focused browser proxy client for a Ghost-controlled endpoint.",
   "action": { "default_popup": "popup.html" },
   "background": { "service_worker": "background.js", "type": "module" },
-  "permissions": ["proxy", "storage"],
+  "permissions": ["proxy", "storage", "webRequest", "webRequestAuthProvider"],
   "host_permissions": ["<all_urls>"],
   "icons": { "128": "icon.svg" }
 }
