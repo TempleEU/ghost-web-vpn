@@ -19,6 +19,7 @@ services:
       - /lib/modules:/lib/modules:ro
     ports:
       - "${SERVERPORT:-51820}:${SERVERPORT:-51820}/udp"
+      - "127.0.0.1:${PROXY_PORT:-1080}:1080/tcp"
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
     restart: unless-stopped
