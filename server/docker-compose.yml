@@ -1,0 +1,32 @@
+services:
+  ghost-vpn:
+    image: lscr.io/linuxserver/wireguard:latest
+    container_name: ghost-vpn
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=UTC
+      - SERVERURL=${SERVERURL}
+      - SERVERPORT=${SERVERPORT:-51820}
+      - PEERS=${PEERS:-ghost-web}
+      - PEERDNS=${PEERDNS:-1.1.1.1}
+      - INTERNAL_SUBNET=${INTERNAL_SUBNET:-10.66.66.0}
+    volumes:
+      - ./wireguard:/config
+      - /lib/modules:/lib/modules:ro
+    ports:
+      - "${SERVERPORT:-51820}:${SERVERPORT:-51820}/udp"
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+    restart: unless-stopped
+
+  ghost-proxy:
+    image: serjs/go-socks5-proxy:latest
+    container_name: ghost-proxy
+    network_mode: "service:ghost-vpn"
+    depends_on:
+      - ghost-vpn
+    restart: unless-stopped
