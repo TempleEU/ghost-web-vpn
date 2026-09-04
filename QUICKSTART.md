@@ -91,6 +91,10 @@ visit a site like `https://whatismyipaddress.com` after connecting.
 
 ## Behavior notes
 
+- **Location protection**: in the popup, Location protection lets your browser
+  report your endpoint's region (geolocation, timezone, Intl) instead of your
+  real one. Pick the region your endpoint exits in, or press Detect while
+  connected. Refresh open tabs to apply.
 - **Auto-reconnect**: the last endpoint and "connected" state are remembered.
   When the browser restarts, the proxy is re-applied automatically — no need to
   open the popup. A background keep-alive also re-applies it if Chrome ever

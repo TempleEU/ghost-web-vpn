@@ -8,6 +8,7 @@ A privacy-focused Chromium browser proxy client, built from scratch as a Manifes
 
 - One-click connect/disconnect with a **live connectivity check** — the popup probes the endpoint through the proxy and reports a real connected/unreachable status instead of failing silently
 - **Auto-reconnect** — the last endpoint is remembered and re-applied when the browser restarts, with a keep-alive that restores the proxy if Chrome ever drops it
+- **Location protection** — spoofs geolocation, timezone, Date/Intl and permissions (GeoSpoof-style) so your browser reports your endpoint's region instead of leaking your real one; pick a region preset or auto-detect it from your connection
 - HTTP, HTTPS, SOCKS4 and SOCKS5 proxy endpoints
 - Persistent local configuration
 - Proxy configuration applied through Chromium's `chrome.proxy` API

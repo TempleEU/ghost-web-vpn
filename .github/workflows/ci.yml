@@ -16,12 +16,16 @@ jobs:
         run: |
           node --check background.js
           node --check popup.js
+          node --check spoof.js
+          node --check presets.js
       - name: Validate required files
         run: |
           test -f background.js
           test -f popup.html
           test -f popup.js
           test -f popup.css
+          test -f spoof.js
+          test -f presets.js
           test -f icon.svg
           test -f QUICKSTART.md
           test -f icons/icon16.png
@@ -40,6 +44,10 @@ jobs:
           assert m['action']['default_popup']=='popup.html'
           assert m['background']['service_worker']=='background.js'
           assert 'proxy' in m['permissions']
+          assert 'privacy' in m['permissions']
+          assert m['content_scripts'][0]['matches']==['<all_urls>']
+          assert m['content_scripts'][0]['js']==['spoof.js']
+          assert m['content_scripts'][0]['run_at']=='document_start'
           assert set(m['icons']) >= {'16','32','48','128'}
           assert all(m['icons'][k].endswith('.png') for k in m['icons'])
           print('Extension manifest OK')
@@ -77,7 +85,7 @@ jobs:
       - name: Package extension
         run: |
           mkdir -p dist
-          zip -q -r dist/ghost-web-vpn.zip manifest.json background.js popup.html popup.js popup.css icon.svg icons README.md QUICKSTART.md
+          zip -q -r dist/ghost-web-vpn.zip manifest.json background.js popup.html popup.js popup.css spoof.js presets.js icon.svg icons README.md QUICKSTART.md
       - uses: actions/upload-artifact@v4
         with:
           name: ghost-web-vpn-extension

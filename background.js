@@ -6,6 +6,7 @@ const DEFAULTS = {
   username: "",
   password: "",
   bypassList: ["localhost", "127.0.0.1"],
+  location: { enabled: false, lat: 0, lng: 0, tzId: "UTC" },
 };
 
 const SCHEMES = ["http", "https", "socks4", "socks5"];
@@ -59,6 +60,23 @@ async function isApplied() {
   return value.mode === "fixed_servers";
 }
 
+// Best-effort WebRTC hardening: with the proxy and location protection both
+// on, ask the browser not to send non-proxied UDP (WebRTC can otherwise leak
+// the real IP around a proxy). Not every browser/version honors this, so
+// failures are ignored silently.
+async function syncWebRTC(c) {
+  try {
+    const value =
+      c.enabled && c.location && c.location.enabled
+        ? "disable_non_proxied_udp"
+        : "default";
+    await chrome.privacy.network.webRTCIPHandlingPolicy.set({ value });
+  } catch {
+    // Unsupported here; page-world WebRTC still spoofs nothing, but the
+    // Geolocation/timezone/Intl overrides remain active.
+  }
+}
+
 // Supplies credentials only for HTTP(S) proxies that answer with 407.
 chrome.webRequest.onAuthRequired.addListener(
   async details => {
@@ -98,11 +116,14 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       case "setConfig": {
         const next = { ...DEFAULTS, ...message.config, enabled: Boolean(message.config?.enabled) };
         await chrome.storage.local.set({ config: next });
+        await syncWebRTC(next);
         return await applyProxy();
       }
       case "disconnect": {
-        await chrome.storage.local.set({ config: { ...(await getConfig()), enabled: false } });
+        const next = { ...(await getConfig()), enabled: false };
+        await chrome.storage.local.set({ config: next });
         await chrome.proxy.settings.clear({ scope: "regular" });
+        await syncWebRTC(next);
         return { enabled: false, applied: false };
       }
       default:
