@@ -1,6 +1,6 @@
 # Ghost Web VPN
 
-A privacy-focused Chromium browser proxy client, built from scratch and inspired by the simple one-click experience of BiuBiu VPN. The reference project is a Manifest V3 browser extension using the Chrome proxy API; Ghost Web VPN does not copy its source code.
+A privacy-focused Chromium browser proxy client, built from scratch as a Manifest V3 browser extension using the Chrome proxy API.
 
 ## What this build does
 
@@ -57,7 +57,3 @@ Do not put private keys, passwords, or long-lived credentials in source control.
 ## Contact
 
 Questions, feedback, or support requests: [ghostweb@ghostbin.cfd](mailto:ghostweb@ghostbin.cfd)
-
-## Reference
-
-The original BiuBiu repository documents a one-click browser-extension experience and Manifest V3 architecture. Ghost Web VPN uses that product direction as inspiration while implementing its own code and branding.
