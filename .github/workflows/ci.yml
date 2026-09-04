@@ -23,6 +23,7 @@ jobs:
           test -f popup.js
           test -f popup.css
           test -f icon.svg
+          test -f QUICKSTART.md
           test -f icons/icon16.png
           test -f icons/icon32.png
           test -f icons/icon48.png
@@ -76,7 +77,7 @@ jobs:
       - name: Package extension
         run: |
           mkdir -p dist
-          zip -q -r dist/ghost-web-vpn.zip manifest.json background.js popup.html popup.js popup.css icon.svg icons README.md
+          zip -q -r dist/ghost-web-vpn.zip manifest.json background.js popup.html popup.js popup.css icon.svg icons README.md QUICKSTART.md
       - uses: actions/upload-artifact@v4
         with:
           name: ghost-web-vpn-extension

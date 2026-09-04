@@ -74,9 +74,19 @@ chrome.webRequest.onAuthRequired.addListener(
 chrome.runtime.onInstalled.addListener(async () => {
   const { config } = await chrome.storage.local.get("config");
   if (!config) await chrome.storage.local.set({ config: DEFAULTS });
+  await chrome.alarms.create("keepalive", { periodInMinutes: 1 });
   await applyProxy();
 });
+
+// Auto-reconnect: the last endpoint stays in storage, so whenever the browser
+// starts (or Chrome ever drops the proxy settings) an enabled config is
+// re-applied without any user action.
 chrome.runtime.onStartup.addListener(applyProxy);
+chrome.alarms.onAlarm.addListener(async alarm => {
+  if (alarm.name !== "keepalive") return;
+  const c = await getConfig();
+  if (c.enabled && !(await isApplied())) await applyProxy();
+});
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   (async () => {

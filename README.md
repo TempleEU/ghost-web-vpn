@@ -2,9 +2,12 @@
 
 A privacy-focused Chromium browser proxy client, built from scratch as a Manifest V3 browser extension using the Chrome proxy API.
 
+> **New here? Follow the [Quick Start](QUICKSTART.md)** — from clone to a working free endpoint in about 10 minutes.
+
 ## What this build does
 
 - One-click connect/disconnect with a **live connectivity check** — the popup probes the endpoint through the proxy and reports a real connected/unreachable status instead of failing silently
+- **Auto-reconnect** — the last endpoint is remembered and re-applied when the browser restarts, with a keep-alive that restores the proxy if Chrome ever drops it
 - HTTP, HTTPS, SOCKS4 and SOCKS5 proxy endpoints
 - Persistent local configuration
 - Proxy configuration applied through Chromium's `chrome.proxy` API

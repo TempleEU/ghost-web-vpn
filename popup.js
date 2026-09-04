@@ -71,9 +71,18 @@ async function connect() {
     return;
   }
   setMessage("Connecting\u2026");
-  // Let the browser apply the new proxy before testing it.
+  // Let the browser apply the new proxy before testing it, then retry a few
+  // times so a slow-to-wake endpoint (or a laptop just back from sleep) is not
+  // reported as down.
   await new Promise(resolve => setTimeout(resolve, 400));
-  const ok = await testProxy();
+  let ok = false;
+  for (let attempt = 0; attempt < 3 && !ok; attempt++) {
+    if (attempt > 0) {
+      setMessage("Endpoint not responding \u2014 retrying (" + attempt + "/2)\u2026");
+      await new Promise(resolve => setTimeout(resolve, 2500));
+    }
+    ok = await testProxy();
+  }
   if (ok) setMessage("Connected \u2014 connectivity check passed.", "ok");
   else setMessage("Not connected \u2014 the endpoint did not respond. Check the host and port, and that the endpoint is running.", "error");
 }
