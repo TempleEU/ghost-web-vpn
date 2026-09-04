@@ -1,234 +1,52 @@
 const $ = id => document.getElementById(id);
-const TEST_URLS = ["https://www.gstatic.com/generate_204", "https://example.com"];
 const EMPTY_LOCATION = { enabled: false, lat: 0, lng: 0, tzId: "UTC" };
 
-function send(type, config) {
-  return chrome.runtime.sendMessage(config === undefined ? { type } : { type, config });
+const I18N = {
+  en: { tagline:"Private proxy connection",presetLabel:"Endpoint preset",protocol:"Protocol",host:"Proxy host",port:"Port",username:"Username",password:"Password",saveProfile:"Save as profile",profiles:"Endpoint profiles",switch:"Switch",delete:"Delete",killSwitch:"Kill switch",killHint:"Block traffic if the endpoint stops responding",location:"Location protection",locationHint:"Match geolocation, timezone & Intl to your exit",region:"Endpoint region",detect:"Sync from endpoint",locationNote:"The endpoint is queried through the proxy. Refresh open tabs if a page does not update.",siteRules:"Per-site rules",routeSite:"Route this site",bypassSite:"Bypass this site",blockSite:"Block this site",siteRuleHint:"Rules match the host and its subdomains. Route is the normal endpoint path; bypass uses your direct connection.",language:"Language" },
+  sv: { tagline:"Privat proxyanslutning",presetLabel:"Proxyserver",protocol:"Protokoll",host:"Proxyvärd",port:"Port",username:"Användarnamn",password:"Lösenord",saveProfile:"Spara som profil",profiles:"Proxyprofiler",switch:"Byt",delete:"Ta bort",killSwitch:"Kill switch",killHint:"Blockera trafik om endpointen slutar svara",location:"Platsskydd",locationHint:"Matcha geolokalisering, tidszon och Intl mot din exit",region:"Endpoint-region",detect:"Synka från endpoint",locationNote:"Endpointen frågas via proxyn. Uppdatera öppna flikar om en sida inte ändras.",siteRules:"Regler per webbplats",routeSite:"Routa denna webbplats",bypassSite:"Kringgå för denna webbplats",blockSite:"Blockera denna webbplats",siteRuleHint:"Regler gäller värden och underdomäner. Routa använder endpointen; kringgå använder direktanslutningen.",language:"Språk" },
+  de: { tagline:"Private Proxy-Verbindung",presetLabel:"Endpoint-Voreinstellung",protocol:"Protokoll",host:"Proxy-Host",port:"Port",username:"Benutzername",password:"Passwort",saveProfile:"Als Profil speichern",profiles:"Endpoint-Profile",switch:"Wechseln",delete:"Löschen",killSwitch:"Kill Switch",killHint:"Datenverkehr blockieren, wenn der Endpoint nicht antwortet",location:"Standortschutz",locationHint:"Geolokalisierung, Zeitzone und Intl an den Exit anpassen",region:"Endpoint-Region",detect:"Vom Endpoint synchronisieren",locationNote:"Der Endpoint wird über den Proxy abgefragt.",siteRules:"Regeln pro Website",routeSite:"Diese Website routen",bypassSite:"Diese Website umgehen",blockSite:"Diese Website blockieren",siteRuleHint:"Regeln gelten für Host und Subdomains.",language:"Sprache" },
+  pl: { tagline:"Prywatne połączenie proxy",presetLabel:"Preset endpointu",protocol:"Protokół",host:"Host proxy",port:"Port",username:"Nazwa użytkownika",password:"Hasło",saveProfile:"Zapisz jako profil",profiles:"Profile endpointów",switch:"Przełącz",delete:"Usuń",killSwitch:"Kill switch",killHint:"Blokuj ruch, gdy endpoint przestanie odpowiadać",location:"Ochrona lokalizacji",locationHint:"Dopasuj geolokalizację, strefę czasową i Intl do wyjścia",region:"Region endpointu",detect:"Synchronizuj z endpointem",locationNote:"Endpoint jest sprawdzany przez proxy.",siteRules:"Reguły dla witryn",routeSite:"Przekieruj tę witrynę",bypassSite:"Pomiń tę witrynę",blockSite:"Zablokuj tę witrynę",siteRuleHint:"Reguły obejmują host i subdomeny.",language:"Język" },
+  es: { tagline:"Conexión proxy privada",presetLabel:"Preajuste del endpoint",protocol:"Protocolo",host:"Host proxy",port:"Puerto",username:"Usuario",password:"Contraseña",saveProfile:"Guardar como perfil",profiles:"Perfiles de endpoint",switch:"Cambiar",delete:"Eliminar",killSwitch:"Kill switch",killHint:"Bloquear tráfico si el endpoint deja de responder",location:"Protección de ubicación",locationHint:"Coincidir geolocalización, zona horaria e Intl con la salida",region:"Región del endpoint",detect:"Sincronizar con endpoint",locationNote:"El endpoint se consulta a través del proxy.",siteRules:"Reglas por sitio",routeSite:"Enrutar este sitio",bypassSite:"Omitir este sitio",blockSite:"Bloquear este sitio",siteRuleHint:"Las reglas coinciden con el host y sus subdominios.",language:"Idioma" },
+  fr: { tagline:"Connexion proxy privée",presetLabel:"Préréglage du endpoint",protocol:"Protocole",host:"Hôte proxy",port:"Port",username:"Nom d'utilisateur",password:"Mot de passe",saveProfile:"Enregistrer comme profil",profiles:"Profils d'endpoint",switch:"Changer",delete:"Supprimer",killSwitch:"Kill switch",killHint:"Bloquer le trafic si l'endpoint ne répond plus",location:"Protection de localisation",locationHint:"Aligner géolocalisation, fuseau et Intl sur la sortie",region:"Région de l'endpoint",detect:"Synchroniser depuis l'endpoint",locationNote:"L'endpoint est interrogé via le proxy.",siteRules:"Règles par site",routeSite:"Router ce site",bypassSite:"Contourner ce site",blockSite:"Bloquer ce site",siteRuleHint:"Les règles correspondent à l'hôte et à ses sous-domaines.",language:"Langue" }
+};
+
+function send(type, payload) { return chrome.runtime.sendMessage(payload === undefined ? { type } : { type, ...payload }); }
+function currentLocation(c) { return { ...EMPTY_LOCATION, ...(c?.location || {}) }; }
+function setMessage(text, kind) { const e=$("message"); e.textContent=text||""; e.classList.toggle("ok",kind==="ok"); e.classList.toggle("error",kind==="error"); }
+function setLocMessage(text, kind) { const e=$("locMsg"); e.textContent=text||""; e.classList.toggle("ok",kind==="ok"); e.classList.toggle("error",kind==="error"); }
+function updateAuthFields(scheme) { const supported=scheme==="http"||scheme==="https"; $("username").disabled=!supported; $("password").disabled=!supported; $("authHint").hidden=supported; }
+function translate(lang) { const t=I18N[lang]||I18N.en; document.documentElement.lang=lang; document.querySelectorAll("[data-i18n]").forEach(e=>{ if(t[e.dataset.i18n]) e.textContent=t[e.dataset.i18n]; }); }
+function autoLanguage() { const lang=(navigator.language||"en").slice(0,2); return I18N[lang]?lang:"en"; }
+
+function buildOptions(c) {
+  const ps=$("proxyPreset"); ps.innerHTML="";
+  const own=document.createElement("option"); own.value=""; own.textContent="Custom endpoint"; ps.appendChild(own);
+  for(const p of PROXY_PRESETS){ const o=document.createElement("option"); o.value=p.id; o.textContent=`${p.city}, ${p.country} — ${p.host}:${p.port}`; ps.appendChild(o); }
+  const rs=$("locRegion"); rs.innerHTML=""; for(const p of LOCATION_PRESETS){ const o=document.createElement("option"); o.value=p.tzId; o.textContent=`${p.city} — ${p.country}`; rs.appendChild(o); }
+  const p=findPreset(currentLocation(c).tzId); if(p) rs.value=p.tzId;
 }
+function renderProfiles(c){ const s=$("profiles"); s.innerHTML=""; if(!c.profiles.length){const o=document.createElement("option");o.textContent="No saved profiles";o.value="";s.appendChild(o);return;} for(const p of c.profiles){const o=document.createElement("option");o.value=p.id;o.textContent=`${p.name} — ${p.host}:${p.port}`;s.appendChild(o);} if(c.activeProfileId)s.value=c.activeProfileId; }
+function render(c){ $("scheme").value=c.scheme||"socks5"; $("host").value=c.host||""; $("port").value=c.port||1080; $("username").value=c.username||""; $("password").value=""; $("killSwitch").checked=c.killSwitch!==false; const on=Boolean(c.enabled&&!c.protectionDropped); $("toggle").setAttribute("aria-pressed",String(on)); $("toggle").classList.toggle("on",on); $("status").textContent=c.protectionDropped?"Protection dropped — traffic blocked":on?"Connected":"Disconnected"; $("protection").textContent=c.protectionDropped?"Protection dropped — traffic blocked":on?"Full protection active":""; const loc=currentLocation(c); $("locOn").checked=loc.enabled; $("locBody").hidden=!loc.enabled; $("locDetect").disabled=!c.enabled||c.protectionDropped; updateAuthFields($("scheme").value); if(c.proof&&on) $("proof").textContent=`You appear as ${c.proof.ip} — ${c.proof.city}, ${c.proof.country}`; else $("proof").textContent=""; renderProfiles(c); }
+function readForm(){return {scheme:$("scheme").value,host:$("host").value.trim(),port:Number($("port").value),username:$("username").value.trim(),password:$("password").value};}
+async function persist(patch={}){const c=await send("getConfig");return send("setConfig",{config:{...readForm(),...c, ...patch, enabled:c.enabled}});}
+async function connect(c){ const config={...readForm(),enabled:true,killSwitch:$("killSwitch").checked,location:currentLocation(c),siteRules:c.siteRules}; if(!config.host||!Number.isInteger(config.port)||config.port<1||config.port>65535){setMessage("Enter a valid proxy host and port.","error");return;} setMessage("Connecting…"); const result=await send("connectAndSync",{config}); if(result?.error){setMessage(result.error,"error");return;} if(result.ok){setMessage("Connected — full protection active.","ok");setLocMessage("Location synced to endpoint.","ok");}else{setMessage("Endpoint did not respond — protection remains blocked.","error");}}
+async function disconnect(){await send("disconnect");setMessage("Disconnected.");}
+async function siteRule(rule){const [tab]=await chrome.tabs.query({active:true,currentWindow:true}); let host=""; try{host=new URL(tab?.url||"").hostname;}catch{} if(!host||/^(chrome|edge|about|file|chrome-extension):$/.test((tab?.url||"").split(":")[0]+":")){setMessage("This tab has no routable website host.","error");return;} const r=await send("setSiteRule",{host,rule}); if(r?.error)setMessage(r.error,"error"); else {setMessage(`${rule} rule applied to ${host}.`,"ok");await load();}}
+async function sync(){const r=await send("syncIdentity");if(r.ok)setLocMessage(`Location synced to ${r.proof.timezone}.` ,"ok");else setLocMessage("Endpoint region sync failed.","error");await load();}
+async function load(){const c=await send("getConfig");render(c);const [tab]=await chrome.tabs.query({active:true,currentWindow:true});try{$("siteHost").textContent=`Active tab: ${new URL(tab?.url||"").hostname||"—"}`;}catch{$("siteHost").textContent="Active tab: —";}}
 
-function readForm() {
-  return {
-    scheme: $("scheme").value,
-    host: $("host").value.trim(),
-    port: Number($("port").value),
-    username: $("username").value.trim(),
-    password: $("password").value,
-  };
-}
+$("toggle").addEventListener("click",async()=>{const c=await send("getConfig");if(c.enabled&&!c.protectionDropped)await disconnect();else await connect(c);await load();});
+$("killSwitch").addEventListener("change",async()=>{await persist({killSwitch:$("killSwitch").checked});});
+$("proxyPreset").addEventListener("change",async()=>{const p=findProxyPreset($("proxyPreset").value);if(!p)return;$("scheme").value=p.scheme;$("host").value=p.host;$("port").value=p.port;updateAuthFields(p.scheme);const loc=LOCATION_PRESETS.find(x=>x.city===p.city)||LOCATION_PRESETS.find(x=>x.city==="Oregon"&&p.city==="Oregon");if(loc)await persist({location:{enabled:true,lat:loc.lat,lng:loc.lng,tzId:loc.tzId}});});
+$("locOn").addEventListener("change",async()=>{const c=await send("getConfig");await persist({location:{...currentLocation(c),enabled:$("locOn").checked}});await load();});
+$("locRegion").addEventListener("change",async()=>{const p=LOCATION_PRESETS.find(x=>x.tzId===$("locRegion").value);if(!p)return;const c=await send("getConfig");await persist({location:{enabled:true,lat:p.lat,lng:p.lng,tzId:p.tzId}});await load();});
+$("locDetect").addEventListener("click",sync);
+["scheme","host","port","username","password"].forEach(id=>$(id).addEventListener("change",async()=>{const c=await send("getConfig");if(c.enabled)await persist();}));
+$("scheme").addEventListener("change",()=>updateAuthFields($("scheme").value));
+$("routeSite").addEventListener("click",()=>siteRule("route")); $("bypassSite").addEventListener("click",()=>siteRule("bypass")); $("blockSite").addEventListener("click",()=>siteRule("block"));
+$("saveProfile").addEventListener("click",async()=>{const name=prompt("Profile name",`${$("host").value}:${$("port").value}`);if(!name)return;const r=await send("saveProfile",{profile:{name,...readForm()}});if(r?.error)setMessage(r.error,"error");else{setMessage("Profile saved.","ok");await load();}});
+$("switchProfile").addEventListener("click",async()=>{const id=$("profiles").value;if(!id)return;const r=await send("switchProfile",{id});if(r?.error)setMessage(r.error,"error");else setMessage(r.ok?"Profile switched — full protection active.":"Profile switched but endpoint could not be verified.",r.ok?"ok":"error");await load();});
+$("deleteProfile").addEventListener("click",async()=>{const id=$("profiles").value;if(id)await send("deleteProfile",{id});await load();});
+$("language").addEventListener("change",async()=>{const lang=$("language").value;const c=await send("getConfig");await persist({language:lang});translate(lang);});
 
-function setMessage(text, kind) {
-  const el = $("message");
-  el.textContent = text;
-  el.classList.toggle("ok", kind === "ok");
-  el.classList.toggle("error", kind === "error");
-}
-
-function setLocMessage(text, kind) {
-  const el = $("locMsg");
-  el.textContent = text;
-  el.classList.toggle("ok", kind === "ok");
-  el.classList.toggle("error", kind === "error");
-}
-
-function updateAuthFields(scheme) {
-  const supported = scheme === "http" || scheme === "https";
-  $("username").disabled = !supported;
-  $("password").disabled = !supported;
-  $("authHint").hidden = supported;
-}
-
-function currentLocation(c) {
-  return { ...EMPTY_LOCATION, ...(c && c.location) };
-}
-
-function buildRegionOptions() {
-  const select = $("locRegion");
-  select.innerHTML = "";
-  const placeholder = document.createElement("option");
-  placeholder.value = "";
-  placeholder.textContent = "Select a region\u2026";
-  placeholder.disabled = true;
-  placeholder.selected = true;
-  select.appendChild(placeholder);
-  for (const p of LOCATION_PRESETS) {
-    const opt = document.createElement("option");
-    opt.value = p.tzId;
-    opt.textContent = p.city + " \u2014 " + p.country + " (" + p.tzId + ")";
-    select.appendChild(opt);
-  }
-}
-
-function renderLocation(c) {
-  const loc = currentLocation(c);
-  $("locOn").checked = loc.enabled;
-  $("locBody").hidden = !loc.enabled;
-  $("locDetect").disabled = !c.enabled;
-  const select = $("locRegion");
-  const p = findPreset(loc.tzId);
-  if (p) {
-    select.value = p.tzId;
-  } else {
-    // Show the current (possibly custom/detected) zone as a selectable option.
-    if (!select.querySelector('option[value="' + loc.tzId + '"]')) {
-      const opt = document.createElement("option");
-      opt.value = loc.tzId;
-      opt.textContent = "Current: " + loc.tzId;
-      select.appendChild(opt);
-    }
-    select.value = loc.tzId;
-  }
-}
-
-function render(c) {
-  $("scheme").value = c.scheme || "socks5";
-  $("host").value = c.host || "";
-  $("port").value = c.port || 1080;
-  $("username").value = c.username || "";
-  $("password").value = "";
-  const on = Boolean(c.enabled);
-  $("toggle").setAttribute("aria-pressed", String(on));
-  $("toggle").classList.toggle("on", on);
-  $("status").textContent = on ? "Connected" : "Disconnected";
-  updateAuthFields($("scheme").value);
-  renderLocation(c);
-}
-
-// Saves the current form plus a (partial) location update without ever
-// dropping the other config fields or the enabled flag.
-async function persistLocation(patch) {
-  const current = await send("getConfig");
-  const location = { ...currentLocation(current), ...patch };
-  return send("setConfig", { ...readForm(), location, enabled: current.enabled });
-}
-
-// Requests made after the proxy is applied go through it, so a successful
-// fetch proves the endpoint is reachable and routing works end to end.
-async function testProxy() {
-  for (const url of TEST_URLS) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 8000);
-    try {
-      const res = await fetch(url, { cache: "no-store", signal: controller.signal });
-      clearTimeout(timer);
-      if (res.ok) return true;
-    } catch {
-      clearTimeout(timer);
-    }
-  }
-  return false;
-}
-
-async function connect(current) {
-  const config = { ...readForm(), enabled: true, location: currentLocation(current) };
-  if (!config.host || !Number.isInteger(config.port) || config.port < 1 || config.port > 65535) {
-    setMessage("Enter a valid proxy host and port (1\u201365535).", "error");
-    return;
-  }
-  const result = await send("setConfig", config);
-  if (result?.error) {
-    setMessage(result.error, "error");
-    return;
-  }
-  setMessage("Connecting\u2026");
-  // Let the browser apply the new proxy before testing it, then retry a few
-  // times so a slow-to-wake endpoint (or a laptop just back from sleep) is not
-  // reported as down.
-  await new Promise(resolve => setTimeout(resolve, 400));
-  let ok = false;
-  for (let attempt = 0; attempt < 3 && !ok; attempt++) {
-    if (attempt > 0) {
-      setMessage("Endpoint not responding \u2014 retrying (" + attempt + "/2)\u2026");
-      await new Promise(resolve => setTimeout(resolve, 2500));
-    }
-    ok = await testProxy();
-  }
-  if (ok) setMessage("Connected \u2014 connectivity check passed.", "ok");
-  else setMessage("Not connected \u2014 the endpoint did not respond. Check the host and port, and that the endpoint is running.", "error");
-}
-
-async function disconnect() {
-  await send("disconnect");
-  setMessage("Disconnected.");
-}
-
-async function detectFromConnection() {
-  const current = await send("getConfig");
-  if (!current.enabled) {
-    setLocMessage("Connect to your endpoint first, then detect.", "error");
-    return;
-  }
-  setLocMessage("Detecting endpoint region\u2026");
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 10000);
-  try {
-    const res = await fetch("https://ipapi.co/json/", { cache: "no-store", signal: controller.signal });
-    clearTimeout(timer);
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    const data = await res.json();
-    if (!data || !data.timezone) throw new Error("No timezone in response");
-    const lat = Number(data.latitude);
-    const lng = Number(data.longitude);
-    const location = { enabled: true, lat: Number.isFinite(lat) ? lat : 0, lng: Number.isFinite(lng) ? lng : 0, tzId: data.timezone };
-    const result = await persistLocation(location);
-    if (result?.error) throw new Error(result.error);
-    setLocMessage("Location synced to " + data.timezone + ". Refresh tabs to apply.", "ok");
-  } catch (e) {
-    setLocMessage("Detection failed: " + (e && e.message ? e.message : e) + ". Pick a region manually.", "error");
-  } finally {
-    clearTimeout(timer);
-  }
-  await load();
-}
-
-$("toggle").addEventListener("click", async () => {
-  const current = await send("getConfig");
-  if (current.enabled) await disconnect();
-  else await connect(current);
-  await load();
-});
-
-$("locOn").addEventListener("change", async () => {
-  $("locBody").hidden = !$("locOn").checked;
-  const loc = await send("getConfig").then(c => currentLocation(c));
-  if ($("locOn").checked && loc.tzId === "UTC" && loc.lat === 0 && loc.lng === 0) {
-    // Nothing usable selected yet — ask for a region instead of spoofing 0,0.
-    $("locOn").checked = false;
-    $("locBody").hidden = true;
-    setLocMessage("Pick an endpoint region below, or use Detect.", "error");
-    return;
-  }
-  const result = await persistLocation({ enabled: $("locOn").checked });
-  setLocMessage(result?.error || ($("locOn").checked ? "Location protection on. Refresh tabs to apply." : "Location protection off."), result?.error ? "error" : "ok");
-  renderLocation(await send("getConfig"));
-});
-
-$("locRegion").addEventListener("change", async () => {
-  const p = findPreset($("locRegion").value);
-  if (!p) return;
-  const loc = await send("getConfig").then(c => currentLocation(c));
-  await persistLocation({ enabled: loc.enabled, lat: p.lat, lng: p.lng, tzId: p.tzId });
-  setLocMessage("Region set to " + p.city + " (" + p.tzId + "). Refresh tabs to apply.", "ok");
-});
-
-$("locDetect").addEventListener("click", detectFromConnection);
-
-["scheme", "host", "port", "username", "password"].forEach(id =>
-  $(id).addEventListener("change", async () => {
-    const current = await send("getConfig");
-    if (current.enabled) {
-      await send("setConfig", { ...readForm(), enabled: true, location: currentLocation(current) });
-      setMessage("Proxy settings updated.");
-    }
-  })
-);
-
-$("scheme").addEventListener("change", () => updateAuthFields($("scheme").value));
-
-async function load() {
-  const c = await send("getConfig");
-  render(c);
-  if (c.enabled && !c.applied) setMessage("Proxy is enabled but was not applied by the browser.", "error");
-}
-
-buildRegionOptions();
-load().catch(e => setMessage(e.message, "error"));
+(async()=>{const c=await send("getConfig");const lang=c.language&&I18N[c.language]?c.language:autoLanguage();$("language").value=lang;translate(lang);buildOptions(c);await load();})();
