@@ -49,7 +49,12 @@ jobs:
         run: docker compose -f server/docker-compose.yml config --quiet
       - name: Secret hygiene
         run: |
-          ! grep -RInE 'PRIVATE_KEY=|WG_PRIVATE_KEY=' . --exclude-dir=.git || (echo 'Potential private key found'; exit 1)
+          set -euo pipefail
+          if grep -RInE --exclude-dir=.git --exclude-dir=dist --exclude='ci.yml' --exclude='*.md' '(BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|WG_PRIVATE_KEY=|PRIVATE_KEY=)' .; then
+            echo 'Potential private key material found in repository files.'
+            exit 1
+          fi
+          echo 'No private key material detected.'
       - name: Package extension
         run: |
           mkdir -p dist
